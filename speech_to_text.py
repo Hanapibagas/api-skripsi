@@ -9,7 +9,6 @@ UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def convert_to_wav(mp4_path, wav_path):
-    # Menggunakan moviepy untuk mengkonversi file MP4 menjadi WAV
     ffmpeg_extract_audio(mp4_path, wav_path)
 
 def speech_to_text(file_path):
@@ -48,18 +47,14 @@ def api_speech_to_text():
         })
 
     if audio_file:
-        # Simpan file audio MP4 secara sementara
         mp4_path = os.path.join(app.config['UPLOAD_FOLDER'], audio_file.filename)
         audio_file.save(mp4_path)
 
-        # Konversi file MP4 menjadi WAV
         wav_path = os.path.splitext(mp4_path)[0] + ".wav"
         convert_to_wav(mp4_path, wav_path)
 
-        # Panggil fungsi speech_to_text dengan file audio WAV sebagai parameter
         text = speech_to_text(wav_path)
 
-        # Hapus file audio yang telah disimpan secara sementara
         os.remove(mp4_path)
         os.remove(wav_path)
 
