@@ -2,8 +2,10 @@ from flask import Flask, jsonify, request
 import os
 import speech_recognition as sr
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_audio
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app) 
 
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
