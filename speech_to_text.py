@@ -3,9 +3,10 @@ import os
 import speech_recognition as sr
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_audio
 from flask_cors import CORS
+import base64
 
 app = Flask(__name__)
-CORS(app) 
+CORS(app)
 
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -23,8 +24,6 @@ def speech_to_text(file_path):
 
     try:
         text = recognizer.recognize_google(audio, language="id-ID")
-        print("Teks hasil pengenalan suara:")
-        print(text)
         return text
     except sr.UnknownValueError:
         print("Pengenalan suara gagal: Tidak dapat mengenali suara")
@@ -38,15 +37,19 @@ def api_speech_to_text():
     if 'audio' not in request.files:
         return jsonify({
             "status": "error",
-            "message": "Tidak ada file audio yang dikirim."
+            "message": "Mohon maaf pelaporan anda tidak dapat kami proses, mohon coba lagi."
         })
 
     audio_file = request.files['audio']
     if audio_file.filename == '':
         return jsonify({
             "status": "error",
-            "message": "File audio tidak valid."
+            "message": "Mohon maaf pelaporan anda tidak dapat kami proses, mohon coba lagi."
         })
+
+    data = request.form.to_dict()
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
 
     if audio_file:
         mp4_path = os.path.join(app.config['UPLOAD_FOLDER'], audio_file.filename)
@@ -61,15 +64,23 @@ def api_speech_to_text():
         os.remove(wav_path)
 
         if text:
+            maps_link = f"https://www.google.com/maps?q={latitude},{longitude}"
+            encoded_text = base64.b64encode(text.encode()).decode()
+
             response = {
-                "status": "success",
-                "text": text
+                "status": "Selamat pelaporan anda telah kami teruskan, mohon untuk menunggu bantuan yang akan datang.",
+                "encoded_text": encoded_text,
+                "text": text,  # Teks hasil pengenalan suara
+                "latitude": latitude,
+                "longitude": longitude,
+                "mapsLink": maps_link
             }
         else:
             response = {
-                "status": "error",
+                "status": "Mohon maaf pelaporan anda tidak dapat kami proses, mohon coba lagi.",
                 "message": "Pengenalan suara gagal. Coba lagi."
             }
+
         return jsonify(response)
     else:
         return jsonify({
